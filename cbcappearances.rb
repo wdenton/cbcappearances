@@ -17,6 +17,8 @@
 #
 # Copyright 2014 William Denton
 
+# https://developers.google.com/google-apps/spreadsheets/
+# https://spreadsheets.google.com/feeds/list/1qqXnT1--bKn2qXigFqoaH09T9vBm4dXlQNQgTjS60tE/6/public/values
 
 require 'date'
 require 'open-uri'
@@ -30,7 +32,7 @@ network_radio_id  = "1qqXnT1--bKn2qXigFqoaH09T9vBm4dXlQNQgTjS60tE"
 
 spreadsheet_url = "https://spreadsheets.google.com/feeds/list/::ID::/::SHEET::/public/values?alt=json"
 
-month_number = Time.now.strftime("%m").to_i # .gsub(/^0/, '')
+month_number = Time.now.strftime("%m").to_i
 
 # Example news and local sheet: https://spreadsheets.google.com/feeds/list/11Kk-vaj_MKGZdImP54YEh-KxhUMjzDINtZLohfnvbLU/5/public/values?alt=json
 
@@ -76,25 +78,15 @@ end
 
 puts csv
 
-# Total paid appearances
+# # Total paid appearances
 
-paid = Hash.new(0)
+# paid = Hash.new(0)
 
-appearances.each do |a|
-  next unless a["fee"] == "Paid"
-  paid[a["name"]] += 1
-end
+# appearances.each do |a|
+#   next unless a["fee"] == "Paid"
+#   paid[a["name"]] += 1
+# end
 
-paid.each do |name, count|
-  puts "#{name}: #{count}"
-end
-
-
-# https://developers.google.com/google-apps/spreadsheets/
-
-
-# http://spreadsheets.google.com/feeds/list/key/worksheet/public/values?alt=json-in-script&callback=myFunc
-
-
-
-# https://spreadsheets.google.com/feeds/list/1qqXnT1--bKn2qXigFqoaH09T9vBm4dXlQNQgTjS60tE/6/public/values
+# paid.each do |name, count|
+#   puts "#{name}: #{count}"
+# end

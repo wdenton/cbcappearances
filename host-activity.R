@@ -5,13 +5,11 @@ library(reshape)
 
 a <- read.csv("appearances.csv")
 
-a.melted <- melt(a, id=c("name", "fee"))
+b <- a %>% select(name, fee) %>% group_by(name, fee) %>% summarise(count=n())
 
-appearances <- cast(a.melted, name~fee, NROW)
+appearances <- cast(b, name~fee, fill = 0, value = "count")
 
-appearances <- mutate(appearances, Total = Expenses + Paid + Unpaid)
-
-appearances <- mutate(appearances, Paid.PerCent = 100 * round(Paid / Total, digits = 2))
+appearances <- mutate(appearances, Total = Expenses + Paid + Unpaid, Paid.PerCent = 100 * round(Paid / Total, digits = 2))
 
 print("Define as being 'busy' anyone who has more than this many appearances:")
 
