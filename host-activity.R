@@ -5,6 +5,10 @@ library(reshape)
 
 a <- read.csv("appearances.csv")
 
+a$date <-as.Date(a$date)
+
+print(paste("Date range: ", min(a$date), " - ", max(a$date)))
+
 b <- a %>% select(name, fee) %>% group_by(name, fee) %>% summarise(count=n())
 
 appearances <- cast(b, name~fee, fill = 0, value = "count")
