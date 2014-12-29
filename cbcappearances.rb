@@ -20,56 +20,40 @@
 # https://developers.google.com/google-apps/spreadsheets/
 # https://spreadsheets.google.com/feeds/list/1qqXnT1--bKn2qXigFqoaH09T9vBm4dXlQNQgTjS60tE/6/public/values
 
-require 'date'
+# require 'date'
 require 'open-uri'
-require 'json'
+require 'nokogiri'
+# require 'json'
 require 'csv'
 
-news_and_local_id = "11Kk-vaj_MKGZdImP54YEh-KxhUMjzDINtZLohfnvbLU"
-network_radio_id  = "1qqXnT1--bKn2qXigFqoaH09T9vBm4dXlQNQgTjS60tE"
+url = "http://www.cbc.ca/appearances/"
 
-spreadsheet_url = "https://spreadsheets.google.com/feeds/list/::ID::/::SHEET::/public/values?alt=json"
-
-month_number = Time.now.strftime("%m").to_i
-
-# Example news and local sheet: https://spreadsheets.google.com/feeds/list/11Kk-vaj_MKGZdImP54YEh-KxhUMjzDINtZLohfnvbLU/5/public/values?alt=json
-
-csv = CSV.generate do |csv|
+appearances_csv = CSV.generate do |csv|
   csv << ["name", "date", "event", "role", "fee"]
-  for id in [news_and_local_id, network_radio_id]
-    for i in 1..month_number
-      url = spreadsheet_url.gsub(/::ID::/, id).gsub(/::SHEET::/, i.to_s)
-      open(url) do |f|
-        unless f.status[0] == "200"
-          STDERR.puts "Cannot load sheet #{i}: #{f.status}"
-        # TODO Fail nicely
-        else
-          data = JSON.parse(f.read)
-          if ! data["feed"]["entry"].nil? # There are entries for this month
-            data["feed"]["entry"].each do |f|
-              name = f["gsx$name"]["$t"].gsub(/\s*$/, '')
-              date = ""
-              if f["gsx$date"]["$t"].match(/\d{4}-\d{2}-\d{2}/) # Nice yyyy-mm-dd date format
-                date = f["gsx$date"]["$t"]
-              else
-                # Date is in [M]M/[D]D/YYYY format ... simply awful.
-                (month, day, year) = f["gsx$date"]["$t"].split("/")
-                day = "0#{day}" if day.length == 1
-                month = "0#{month}" if month.length == 1
-                date = "#{year}-#{month}-#{day}"
-              end
-              date.gsub!("3014", "2014") # One date has 3014 as the year, not 2014
-              event = f["gsx$event"]["$t"]
-              role = f["gsx$role"]["$t"]
-              fee = f["gsx$fee"]["$t"]
-              next unless name.length > 0
-              csv << [name, date, event, role, fee]
-            end
-          end
-        end
+
+  open(url) do |f|
+    unless f.status[0] == "200"
+      STDERR.puts "Cannot load sheet #{i}: #{f.status}"
+    # TODO Fail nicely
+    else
+      doc = Nokogiri::HTML(f.read)
+      data_tbody = doc.css("//div[class='data-content']/table/tbody")
+      data_tbody.css("/tr").each do |tr|
+        name  = tr.css("/td")[0].text.strip
+        date  = tr.css("/td")[1].text.strip
+        event = tr.css("/td")[2].text.strip
+        role  = tr.css("/td")[3].text.strip
+        fee   = tr.css("/td")[4].text.strip
+        # Date is in [M]M/[D]D/YYYY format ... simply awful.
+        (month, day, year) = date.split("/")
+        day = "0#{day}" if day.length == 1
+        month = "0#{month}" if month.length == 1
+        iso_date = "#{year}-#{month}-#{day}"
+        csv << [name, iso_date, event, role, fee]
       end
     end
   end
+
 end
 
-puts csv
+puts appearances_csv
