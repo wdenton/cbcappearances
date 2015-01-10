@@ -1,15 +1,15 @@
 #!/usr/bin/env Rscript
 
-suppressMessages(library(dplyr))
+library(dplyr)
 library(reshape2)
 
-a <- read.csv("appearances.csv", header = TRUE)
+cbc <- read.csv("appearances.csv", header = TRUE, stringsAsFactors = TRUE)
 
-a$date <-as.Date(a$date)
+cbc$date <- as.Date(cbc$date)
 
-print(paste("Date range: ", min(a$date), "-", max(a$date)))
+print(paste("Date range: ", min(cbc$date), "-", max(cbc$date)))
 
-b <- a %>% select(name, fee) %>% group_by(name, fee) %>% summarise(count = n())
+b <- cbc %>% select(name, fee) %>% group_by(name, fee) %>% summarise(count = n())
 
 appearances <- dcast(b, name ~ fee, fill = 0, value.var = "count")
 
@@ -21,9 +21,9 @@ nrow(appearances)
 print("How many appearances were made in total?")
 sum(appearances$Total)
 
-print("Define as being 'busy' anyone who has more than this many appearances:")
+print("Define as being 'busy' anyone in the third quartile; minimum appearances:")
 
-busy.number <- round(mean(appearances$Total) + sd(appearances$Total), 0)
+busy.number <- quantile(appearances$Total)[[4]]
 busy.number
 
 print("Who is busy?")
